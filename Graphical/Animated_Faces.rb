@@ -41,6 +41,7 @@ end
 # )-- class: Window_Base                                                     --(
 # )---------------------------------------------------------------------=======(
 class Window_Base < Window
+  include ANIMATED_FACES
   
   alias :mrts_face_anims_update :update
   
@@ -50,9 +51,9 @@ class Window_Base < Window
   def draw_actor_face(actor, x, y, enabled = true)
     if actor.has_face_anim?
       @animated_actors ||= true
-      data = ANIMATED_FACES::DATA[actor.id]
+      data = DATA[actor.id]
       face_name = data[0]
-      stuff = actor.face_frame/data[2].to_i
+      stuff = (actor.face_frame/data[2]).to_i
       face_index = data[1][stuff]
       draw_face(face_name, face_index, x, y, enabled)
       actor.push_frame
@@ -66,7 +67,16 @@ class Window_Base < Window
   # )--------------------------------------------------------------------------(
   def update
     mrts_face_anims_update
-    refresh if @animated_actors
+    if @animated_actors
+      p = false
+      $game_party.members.each { |a| 
+        d = (a.face_frame/DATA[a.id][2]).to_i 
+        a.push_frame
+        d2 = (a.face_frame/DATA[a.id][2]).to_i 
+        p = true if d2 != d
+      }
+      refresh if p
+    end
   end
 end
 
