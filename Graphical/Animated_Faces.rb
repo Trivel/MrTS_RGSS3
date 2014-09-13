@@ -3,11 +3,12 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Animated Faces                                         --(
 # )--     CREATED:    2014-09-12                                             --(
-# )--     VERSION:    1.0                                                    --(
+# )--     VERSION:    1.1                                                    --(
 #===============================================================================
 # )----------------------------------------------------------------------------(
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
+# )--  1.1 - Fixed bugs. Uses Frames per second instead of pure frames.      --(
 #===============================================================================
 # )----------------------------------------------------------------------------(
 # )--                          DESCRIPTION                                   --(
@@ -31,10 +32,15 @@ module ANIMATED_FACES
   # )-- Place your animated faces data here.                                 --(
   # )--------------------------------------------------------------------------(
   DATA = {
-  # )-- ACTOR_ID    Filename      Frame Sequence                   Anim Speed (12 - face frame will change every 12 frames)
-          1 => [ "8Cua3Mv.png", [0, 1, 2, 3, 2, 0, 0, 0, 0, 0 ,0, 0], 12]
+  # )-- ACTOR_ID    Filename      Frame Sequence                  
+          1 => [ "8Cua3Mv.png", [0, 1, 2, 3, 2, 0, 0, 0, 0, 0 ,0, 0] ]
   
   }
+  
+  # )--------------------------------------------------------------------------(
+  # )-- How fast should frames change. Speed in milliseconds.                --(
+  # )--------------------------------------------------------------------------(
+  FRAME_SPEED = 150
 end
 
 # )=======---------------------------------------------------------------------(
@@ -42,21 +48,31 @@ end
 # )---------------------------------------------------------------------=======(
 class Window_Base < Window
   include ANIMATED_FACES
-  
+
   alias :mrts_face_anims_update :update
+  alias :mrts_face_anims_initialize :initialize
   
+  # )--------------------------------------------------------------------------(
+  # )-- Alias: initialize                                                    --(
+  # )--------------------------------------------------------------------------(
+  def initialize(x, y, width, height)
+    mrts_face_anims_initialize(x, y, width, height)
+    @time_now = Time.now
+    @elapsed_time = 0.0
+    @actor_hash = {}
+    
+  end
   # )--------------------------------------------------------------------------(
   # )-- Overwrite: draw_actor_face                                           --(
   # )--------------------------------------------------------------------------(
   def draw_actor_face(actor, x, y, enabled = true)
-    if actor.has_face_anim?
+    data = DATA[actor.id]
+    if data
       @animated_actors ||= true
-      data = DATA[actor.id]
+      @actor_hash[actor.id] ||= 0
       face_name = data[0]
-      stuff = (actor.face_frame/data[2]).to_i
-      face_index = data[1][stuff]
+      face_index = data[1][@actor_hash[actor.id]]
       draw_face(face_name, face_index, x, y, enabled)
-      actor.push_frame
     else
       draw_face(actor.face_name, actor.face_index, x, y, enabled)
     end
@@ -65,52 +81,25 @@ class Window_Base < Window
   # )--------------------------------------------------------------------------(
   # )-- Alias: update                                                        --(
   # )--------------------------------------------------------------------------(
-  def update
+  def update    
+    finish = Time.now
+    @elapsed_time += ms(@time_now, finish)
     mrts_face_anims_update
-    if @animated_actors
-      p = false
-      $game_party.members.each { |a| 
-        d = (a.face_frame/DATA[a.id][2]).to_i 
-        a.push_frame
-        d2 = (a.face_frame/DATA[a.id][2]).to_i 
-        p = true if d2 != d
+    if @animated_actors && @elapsed_time >= FRAME_SPEED && Time.now.to_f != @time_now
+      $game_party.members.each { |a|  
+        @actor_hash[a.id] += 1
+        @actor_hash[a.id] = 0 if @actor_hash[a.id] > DATA[a.id][1].size-1
       }
-      refresh if p
+      refresh
+      @elapsed_time = 0
     end
-  end
-end
-
-class Game_Actor < Game_Battler
-  alias :mrts_face_anims_setup :setup
-  
-  # )--------------------------------------------------------------------------(
-  # )-- Public Instance Variables                                            --(
-  # )--------------------------------------------------------------------------(
-  attr_reader :face_frame
-  
-  # )--------------------------------------------------------------------------(
-  # )-- Alias: setup                                                         --(
-  # )--------------------------------------------------------------------------(
-  def setup(actor_id)
-    mrts_face_anims_setup(actor_id)
-    @face_frame = 0
-    data = ANIMATED_FACES::DATA[actor_id]
-    @max_frames = data[2]*(data[1].size-1)
+    @time_now = Time.now
   end
   
   # )--------------------------------------------------------------------------(
-  # )-- New Method: push_frame                                               --(
+  # )-- New Method: ms                                                       --(
   # )--------------------------------------------------------------------------(
-  def push_frame
-    return unless has_face_anim?
-    @face_frame += 1
-    @face_frame = 0 if @face_frame > @max_frames
-  end
-  
-  # )--------------------------------------------------------------------------(
-  # )-- New Method: has_face_anim?                                           --(
-  # )--------------------------------------------------------------------------(
-  def has_face_anim?
-    !@max_frames.nil?
+  def ms(start, finish)
+   (finish - start) * 1000.0
   end
 end
