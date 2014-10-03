@@ -7,6 +7,7 @@
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
+# )--  1.0a - Fix when starting battle with enemis without conditional drops.--(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Allows enemies to drop an extra item if a condition is fulfilled like --(
@@ -82,7 +83,8 @@ class Game_Enemy < Game_Battler
   # )-- Alias: initialize                                                    --(
   # )--------------------------------------------------------------------------(
   def initialize(index, enemy_id)
-    mrts_conditional_drops_initialize(index, enemy_id)
+    mrts_conditional_drops_initialize(index, enemy_id) 
+    return unless enemy.conditional_drop
     @conditional_drop_fulfilled = false
     @conditional_drop = enemy.conditional_drop
     data = enemy.conditional_drop_type
