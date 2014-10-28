@@ -3,15 +3,16 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Quicksand                                              --(
 # )--     CREATED:    2014-10-27                                             --(
-# )--     VERSION:    1.0                                                    --(
+# )--     VERSION:    1.1                                                    --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
+# )--  1.1 - Player is slowed down while in quicksand.                       --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Allows the developer to set which Terrain Tags are quicksand.         --(
 # )--  Player will start sinking in quicksand. If DEATH option is set to true--(
-# )--  player will get a gameover screen after sinking completely. Or, if    --(
+# )--  player will get a game over screen after sinking completely. Or, if   --(
 # )--  it's false, player will sink to a specific amount.                    --(
 # )--                                                                        --(
 # )--  Bonus: Best effect reached when quicksand tiles have Bush option.     --(
@@ -33,12 +34,18 @@ module Quicksand
   # )--  Set which Terrain Tags are quicksand. E.g. [2, 3, 5]                --(
   # )--  Best effect is if those tiles are set to Bush, too.                 --(
   # )--------------------------------------------------------------------------(
-  QUICKSAND_TAGS = [5]
+  QUICKSAND_TAGS = [1]
   
   # )--------------------------------------------------------------------------(
   # )--  Speed of player sinking. Default - 0.1 pixel per frame.             --(
   # )--------------------------------------------------------------------------(
   SINKING_SPEED = 0.1
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Speed of player moving in quicksand the further he sinks.           --(
+  # )--------------------------------------------------------------------------(
+  SLOW_DOWN = 0.05
+  MAX_SLOW_DOWN = 0.5 #0.5 - 50%, #1.0 - no slowdown
   
   # )--------------------------------------------------------------------------(
   # )--  If DEATH is true and player sinks in completely, player gets a game --(
@@ -74,7 +81,8 @@ class Game_Player < Game_Character
   alias :mrts_qcksnd_dash? :dash?
   alias :mrts_qcksnd_update :update
   alias :mrts_qcksnd_shift_y :shift_y
-  alias :mrts_qcksnd_move_straight :move_straight
+  alias :mrts_qcksnd_move_straight :move_straight 
+  alias :mrts_qcksnd_update_move :update_move
   
   # )--------------------------------------------------------------------------(
   # )--  Public Instance Variables                                           --(
@@ -147,6 +155,22 @@ class Game_Player < Game_Character
       jump(dx, dy)
     else
       mrts_qcksnd_move_straight(d, turn_ok = true)
+    end
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Alias: update_move                                                  --(
+  # )--------------------------------------------------------------------------(
+  def update_move
+    if in_quicksand?
+      slowdown = distance_per_frame * [MAX_SLOW_DOWN, (1 - @sunk*SLOW_DOWN)].max
+      @real_x = [@real_x - slowdown, @x].max if @x < @real_x
+      @real_x = [@real_x + slowdown, @x].min if @x > @real_x
+      @real_y = [@real_y - slowdown, @y].max if @y < @real_y
+      @real_y = [@real_y + slowdown, @y].min if @y > @real_y
+      update_bush_depth
+    else
+      mrts_qcksnd_update_move
     end
   end
 end
