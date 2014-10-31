@@ -204,7 +204,7 @@ class Spriteset_Battle
     @bhpb_x.y = 10 + BHP::TIMES_Y_OFFSET
     @bhpb_x.z = @current_bar + 2
     txt = "x" + @current_bar.to_s
-    @bhpb_x.bitmap.draw_text(BHP::TIMES_X_OFFSET, @bhpb_x.width, @bhpb_x.height, txt)
+    @bhpb_x.bitmap.draw_text(BHP::TIMES_X_OFFSET, 0, @bhpb_x.width, @bhpb_x.height, txt)
   end
   
   # )--------------------------------------------------------------------------(
