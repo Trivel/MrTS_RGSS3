@@ -3,10 +3,11 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Multi Layer Boss HP Bar                                --(
 # )--     CREATED:    2014-10-31                                             --(
-# )--     VERSION:    1.0                                                    --(
+# )--     VERSION:    1.1                                                    --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
+# )--  1.1 - Crash fix.                                                      --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Boss can now have a multi-layer health bar. Meaning it won't just go  --(
@@ -58,7 +59,7 @@ module BHP
   # )--  in the middle of the HP bar. You can offset it's X position and Y   --(
   # )--  positions. Number is in pixels.                                     --(
   # )--------------------------------------------------------------------------(
-  TIMES_X_OFFSET = 200
+  TIMES_X_OFFSET = 195
   TIMES_Y_OFFSET = 0
 end
 
@@ -257,15 +258,10 @@ class Spriteset_Battle
   # )--------------------------------------------------------------------------(
   def dispose_boss_hp_bar
     return unless @bhpb_frame
-    @bhpb_frame.bitmap.dispose
+
     @bhpb_frame.dispose
-    
-    @bhpb_bcg.bitmap.dispose
     @bhpb_bcg.dispose
-    
-    @bhpb_bars.each { |b| b.bitmap.dispose ; b.dispose }
-    
-    @bhpb_x.bitmap.dispose
+    @bhpb_bars.each { |b|  b.dispose }
     @bhpb_x.dispose
   end
 end
