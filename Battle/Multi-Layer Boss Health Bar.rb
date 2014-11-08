@@ -3,11 +3,12 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Multi Layer Boss HP Bar                                --(
 # )--     CREATED:    2014-10-31                                             --(
-# )--     VERSION:    1.1                                                    --(
+# )--     VERSION:    1.1a                                                   --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
 # )--  1.1 - Crash fix.                                                      --(
+# )--  1.1a - Small code change.                                             --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Boss can now have a multi-layer health bar. Meaning it won't just go  --(
@@ -59,8 +60,13 @@ module BHP
   # )--  in the middle of the HP bar. You can offset it's X position and Y   --(
   # )--  positions. Number is in pixels.                                     --(
   # )--------------------------------------------------------------------------(
-  TIMES_X_OFFSET = 195
+  TIMES_X_OFFSET = 230
   TIMES_Y_OFFSET = 0
+  
+  # )--------------------------------------------------------------------------(
+  # )--  How low should the HP bar be                                        --(
+  # )--------------------------------------------------------------------------(
+  BAR_Y = 40
 end
 
 # )=======---------------------------------------------------------------------(
@@ -145,8 +151,8 @@ class Spriteset_Battle
   # )--  Alias: initialize                                                   --(
   # )--------------------------------------------------------------------------(
   def initialize
-    bosses_initialize   
     create_boss_hp_bar 
+    bosses_initialize   
   end
   
   # )--------------------------------------------------------------------------(
@@ -161,8 +167,8 @@ class Spriteset_Battle
   # )--  Alias: dispose                                                      --(
   # )--------------------------------------------------------------------------(
   def dispose
-    bosses_dispose
     dispose_boss_hp_bar
+    bosses_dispose    
   end
   
   # )--------------------------------------------------------------------------(
@@ -180,13 +186,13 @@ class Spriteset_Battle
     @bhpb_frame = Sprite.new(@viewport2)
     @bhpb_frame.bitmap = $game_temp.bhp_frame
     @bhpb_frame.x = Graphics.width/2 - @bhpb_frame.bitmap.width/2
-    @bhpb_frame.y = 10
+    @bhpb_frame.y = BHP::BAR_Y
     @bhpb_frame.z = @current_bar + 1
     
     @bhpb_bcg = Sprite.new(@viewport2)
     @bhpb_bcg.bitmap = $game_temp.bhp_background
     @bhpb_bcg.x = Graphics.width/2 - @bhpb_bcg.bitmap.width/2
-    @bhpb_bcg.y = 10
+    @bhpb_bcg.y = @bhpb_frame.y
     @bhpb_bcg.z = 0
     
     @bhpb_bars = []
@@ -194,7 +200,7 @@ class Spriteset_Battle
       tmp = Sprite.new(@viewport2)
       tmp.bitmap = $game_temp.bhp_fill[bar % 5]
       tmp.x = Graphics.width/2 - tmp.bitmap.width/2
-      tmp.y = 10
+      tmp.y = @bhpb_frame.y
       tmp.z = @current_bar-bar
       @bhpb_bars.push(tmp)
     end
@@ -202,7 +208,7 @@ class Spriteset_Battle
     @bhpb_x = Sprite.new(@viewport2)
     @bhpb_x.bitmap = Bitmap.new(@bhpb_frame.width, @bhpb_frame.height)
     @bhpb_x.x = Graphics.width/2 - @bhpb_x.bitmap.width/2
-    @bhpb_x.y = 10 + BHP::TIMES_Y_OFFSET
+    @bhpb_x.y = @bhpb_frame.y + BHP::TIMES_Y_OFFSET
     @bhpb_x.z = @current_bar + 2
     txt = "x" + @current_bar.to_s
     @bhpb_x.bitmap.draw_text(BHP::TIMES_X_OFFSET, 0, @bhpb_x.width, @bhpb_x.height, txt)
