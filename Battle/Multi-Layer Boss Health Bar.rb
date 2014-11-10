@@ -6,9 +6,11 @@
 # )--     VERSION:    1.1a                                                   --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
-# )--  1.0 - Initial script.                                                 --(
-# )--  1.1 - Crash fix.                                                      --(
+# )--  1.0  - Initial script.                                                --(
+# )--  1.1  - Crash fix.                                                     --(
 # )--  1.1a - Small code change.                                             --(
+# )--  1.2  - Boss Health bar is now in it's own class. Added a switch to    --(
+# )--          hide boss health bar.                                         --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Boss can now have a multi-layer health bar. Meaning it won't just go  --(
@@ -21,12 +23,15 @@
 # )--  boss_hp_bar_borders - this is the frame of the health bar             --(
 # )--  boss_hp_bar_bcg - background of health bar, this is what player will  --(
 # )--    as the last layer is depleting.                                     --(
-# )--  boss_hp_bar1 through boss_hp_bar5 - (so boss_hp_bar1, boss_hp_bar2 and--(
-# )--    so on up to boss_hp_bar5), these are the health layers.             --(
+# )--  boss_hp_bar1   \                                                      --(
+# )--  boss_hp_bar2    \                                                     --(
+# )--  boss_hp_bar3     - Health Layers.                                     --(
+# )--  boss_hp_bar4    /                                                     --(
+# )--  boss_hp_bar5   /                                                      --(
 # )--                                                                        --(
 # )--  #2 Find your boss enemy and add this note tag to it:                  --(
 # )--  <boss: X> - X is how many health layers the boss will have.           --(
-# )--  In the video example I used <boss: 2>                                 --(
+# )--  In the video example I used <boss: 10>                                --(
 # )--                                                                        --(
 # )--  #3 Set up the BHP module below to fit your HP bar's needs.            --(
 #===============================================================================
@@ -67,6 +72,12 @@ module BHP
   # )--  How low should the HP bar be                                        --(
   # )--------------------------------------------------------------------------(
   BAR_Y = 40
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Switch to show/hide the boss HP bar. In case of cutscenes in battle.--(
+  # )--  Set it to 0 if you do not wish to use this.                         --(
+  # )--------------------------------------------------------------------------(
+  HIDE_SWITCH = 5
 end
 
 # )=======---------------------------------------------------------------------(
@@ -136,45 +147,14 @@ class Game_Temp
 end # Game_Temp
 
 # )=======---------------------------------------------------------------------(
-# )-- Class: Spriteset_Battle                                                --(
+# )-- Class: Sprite_Boss_bar                                                 --(
 # )---------------------------------------------------------------------=======(
-class Spriteset_Battle
+class Sprite_Boss_bar
   
   # )--------------------------------------------------------------------------(
-  # )--  Aliased methods                                                     --(
-  # )--------------------------------------------------------------------------(
-  alias :bosses_initialize :initialize
-  alias :bosses_update :update
-  alias :bosses_dispose :dispose
-  
-  # )--------------------------------------------------------------------------(
-  # )--  Alias: initialize                                                   --(
+  # )--  Method: initialize                                                  --(
   # )--------------------------------------------------------------------------(
   def initialize
-    create_boss_hp_bar 
-    bosses_initialize   
-  end
-  
-  # )--------------------------------------------------------------------------(
-  # )--  Alias: update                                                       --(
-  # )--------------------------------------------------------------------------(
-  def update
-    bosses_update
-    update_boss_hp_bar
-  end
-  
-  # )--------------------------------------------------------------------------(
-  # )--  Alias: dispose                                                      --(
-  # )--------------------------------------------------------------------------(
-  def dispose
-    dispose_boss_hp_bar
-    bosses_dispose    
-  end
-  
-  # )--------------------------------------------------------------------------(
-  # )--  New Method: create_boss_hp_bar                                      --(
-  # )--------------------------------------------------------------------------(
-  def create_boss_hp_bar
     @boss = $game_troop.members.find { |e| e.boss }
     return unless @boss
     
@@ -215,9 +195,9 @@ class Spriteset_Battle
   end
   
   # )--------------------------------------------------------------------------(
-  # )--  New Method: update_boss_hp_bar                                      --(
+  # )--  Method: update                                                      --(
   # )--------------------------------------------------------------------------(
-  def update_boss_hp_bar
+  def update
     return unless @bhpb_frame && @bhpb_bcg && @bhpb_bars
     
     @bhpb_frame.update
@@ -257,18 +237,89 @@ class Spriteset_Battle
     end
     
     @bhpb_x.update
+    
+    return if BHP::HIDE_SWITCH == 0 || ($game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 0) || (!$game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 255)
+    if $game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity != 0
+      @bhpb_frame.opacity = 0
+      @bhpb_bcg.opacity = 0 
+      @bhpb_bars.each { |b|  b.opacity = 0  }
+      @bhpb_x.opacity = 0
+    elsif !$game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity != 255
+      @bhpb_frame.opacity = 255
+      @bhpb_bcg.opacity = 255
+      @bhpb_bars.each { |b|  b.opacity = 255  }
+      @bhpb_x.opacity = 255
+    end
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Method: dispose                                                     --(
+  # )--------------------------------------------------------------------------(
+  def dispose
+    @bhpb_frame.dispose if @bhpb_frame
+    @bhpb_bcg.dispose if @bhpb_bcg
+    @bhpb_bars.each { |b|  b.dispose if b }
+    @bhpb_x.dispose if @bhpb_x
+  end
+end
+
+# )=======---------------------------------------------------------------------(
+# )-- Class: Spriteset_Battle                                                --(
+# )---------------------------------------------------------------------=======(
+class Spriteset_Battle
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Aliased methods                                                     --(
+  # )--------------------------------------------------------------------------(
+  alias :bosses_initialize :initialize
+  alias :bosses_update :update
+  alias :bosses_dispose :dispose
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Alias: initialize                                                   --(
+  # )--------------------------------------------------------------------------(
+  def initialize
+    create_boss_hp_bar 
+    bosses_initialize   
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Alias: update                                                       --(
+  # )--------------------------------------------------------------------------(
+  def update
+    bosses_update
+    update_boss_hp_bar
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Alias: dispose                                                      --(
+  # )--------------------------------------------------------------------------(
+  def dispose
+    dispose_boss_hp_bar
+    bosses_dispose    
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  New Method: create_boss_hp_bar                                      --(
+  # )--------------------------------------------------------------------------(
+  def create_boss_hp_bar
+    @boss_hp_bar = Sprite_Boss_bar.new
+  end
+  
+  # )--------------------------------------------------------------------------(
+  # )--  New Method: update_boss_hp_bar                                      --(
+  # )--------------------------------------------------------------------------(
+  def update_boss_hp_bar
+    return unless @boss_hp_bar
+    @boss_hp_bar.update
   end
   
   # )--------------------------------------------------------------------------(
   # )--  New Method: dispose_boss_hp_bar                                     --(
   # )--------------------------------------------------------------------------(
   def dispose_boss_hp_bar
-    return unless @bhpb_frame
-
-    @bhpb_frame.dispose
-    @bhpb_bcg.dispose
-    @bhpb_bars.each { |b|  b.dispose }
-    @bhpb_x.dispose
+    return unless @boss_hp_bar
+    @boss_hp_bar.dispose    
   end
 end
 
