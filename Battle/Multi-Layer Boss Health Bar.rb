@@ -3,7 +3,7 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Multi Layer Boss HP Bar                                --(
 # )--     CREATED:    2014-10-31                                             --(
-# )--     VERSION:    1.1a                                                   --(
+# )--     VERSION:    1.2                                                    --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0  - Initial script.                                                --(
