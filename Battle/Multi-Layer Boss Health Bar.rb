@@ -3,7 +3,7 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Multi Layer Boss HP Bar                                --(
 # )--     CREATED:    2014-10-31                                             --(
-# )--     VERSION:    1.2                                                    --(
+# )--     VERSION:    1.2a                                                   --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0  - Initial script.                                                --(
@@ -11,6 +11,7 @@
 # )--  1.1a - Small code change.                                             --(
 # )--  1.2  - Boss Health bar is now in it's own class. Added a switch to    --(
 # )--          hide boss health bar.                                         --(
+# )--  1.2a - Crash fix in non-boss battles.                                 --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Boss can now have a multi-layer health bar. Meaning it won't just go  --(
@@ -77,7 +78,7 @@ module BHP
   # )--  Switch to show/hide the boss HP bar. In case of cutscenes in battle.--(
   # )--  Set it to 0 if you do not wish to use this.                         --(
   # )--------------------------------------------------------------------------(
-  HIDE_SWITCH = 5
+  HIDE_SWITCH = 0
 end
 
 # )=======---------------------------------------------------------------------(
@@ -258,7 +259,7 @@ class Sprite_Boss_bar
   def dispose
     @bhpb_frame.dispose if @bhpb_frame
     @bhpb_bcg.dispose if @bhpb_bcg
-    @bhpb_bars.each { |b|  b.dispose if b }
+    @bhpb_bars.each { |b|  b.dispose if b } if @bhpb_bars
     @bhpb_x.dispose if @bhpb_x
   end
 end
