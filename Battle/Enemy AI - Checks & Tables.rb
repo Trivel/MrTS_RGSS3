@@ -3,10 +3,13 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Enemy AI - Checks & Tables                             --(
 # )--     CREATED:    2014-11-09                                             --(
-# )--     VERSION:    1.0                                                    --(
+# )--     VERSION:    1.1                                                    --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
+# )--  1.1 - Small compatibility addon.                                      --(
+# )--        Enemies will use default patterns in database if tables and     --(
+# )--          checks aren't created.                                        --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Instead of using Attack Patterns in database which don't allow for    --(
@@ -171,47 +174,52 @@ end
 # )-- Class: Game_Enemy                                                      --(
 # )---------------------------------------------------------------------=======(
 class Game_Enemy < Game_Battler
+  alias :mrts_enemy_ai_CAT_make_actions :make_actions
   
   # )--------------------------------------------------------------------------(
-  # )--  Overwrite Method: make_actions                                      --(
+  # )--  Alias Method: make_actions                                          --(
   # )--------------------------------------------------------------------------(
   def make_actions
-    super
-    return if @actions.empty?
-    
-    attack_table = nil
-    
-    # Check loop
-    ATDATA::DATA[@enemy_id][:checks].each { |check_id, check_val|
-      evaluation = ""
-      # condition loop
-      check_val[:conditions].each { |condition|
-        eval(condition) ? evaluation += "1" : evaluation += "0"
+    if ATDATA::DATA[@enemy_id]
+      super
+      return if @actions.empty?
+      
+      attack_table = nil
+      
+      # Check loop
+      ATDATA::DATA[@enemy_id][:checks].each { |check_id, check_val|
+        evaluation = ""
+        # condition loop
+        check_val[:conditions].each { |condition|
+          eval(condition) ? evaluation += "1" : evaluation += "0"
+        }
+        table = check_val[:tables][evaluation]
+        if table != nil
+          attack_table = table
+          break
+        end
       }
-      table = check_val[:tables][evaluation]
-      if table != nil
-        attack_table = table
-        break
+      
+      return if attack_table == nil
+      
+      # select an action from attack table
+      
+      roll = rand(100)+1
+      skill = nil
+      ATDATA::DATA[@enemy_id][:attack_tables][attack_table].each { |skill_id, chance|
+        if roll > chance
+          roll -= chance
+        else
+          skill = skill_id
+          break
+        end
+      }
+      
+      @actions.each do |action|
+        action.set_enemy_action_from_table(skill)
       end
-    }
-    
-    return if attack_table == nil
-    
-    # select an action from attack table
-    
-    roll = rand(100)+1
-    skill = nil
-    ATDATA::DATA[@enemy_id][:attack_tables][attack_table].each { |skill_id, chance|
-      if roll > chance
-        roll -= chance
-      else
-        skill = skill_id
-        break
-      end
-    }
-    
-    @actions.each do |action|
-      action.set_enemy_action(skill)
+    else
+      mrts_enemy_ai_CAT_make_actions
     end
   end
 end
@@ -222,9 +230,9 @@ end
 class Game_Action
   
   # )--------------------------------------------------------------------------(
-  # )--  Overwrite Method: set_enemy_action                                  --(
+  # )--  New Method: set_enemy_action_from_table                             --(
   # )--------------------------------------------------------------------------(
-  def set_enemy_action(action)
+  def set_enemy_action_from_table(action)
     if action
       set_skill(action)
     else
