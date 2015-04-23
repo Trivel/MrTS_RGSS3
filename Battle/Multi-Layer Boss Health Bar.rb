@@ -3,7 +3,7 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Multi Layer Boss HP Bar                                --(
 # )--     CREATED:    2014-10-31                                             --(
-# )--     VERSION:    1.2a                                                   --(
+# )--     VERSION:    1.2b                                                   --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0  - Initial script.                                                --(
@@ -12,6 +12,7 @@
 # )--  1.2  - Boss Health bar is now in it's own class. Added a switch to    --(
 # )--          hide boss health bar.                                         --(
 # )--  1.2a - Crash fix in non-boss battles.                                 --(
+# )--  1.2b - Bar now disappears when boss dies. Can be turned off.          --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Boss can now have a multi-layer health bar. Meaning it won't just go  --(
@@ -79,6 +80,11 @@ module BHP
   # )--  Set it to 0 if you do not wish to use this.                         --(
   # )--------------------------------------------------------------------------(
   HIDE_SWITCH = 0
+  
+  # )--------------------------------------------------------------------------(
+  # )--  Should bar be hidden after boss dies?                               --(
+  # )--------------------------------------------------------------------------(
+  HIDE_BAR_WHEN_BOSS_DIES = true
 end
 
 # )=======---------------------------------------------------------------------(
@@ -179,7 +185,7 @@ class Sprite_Boss_bar
     @bhpb_bars = []
     @current_bar.times do |bar|
       tmp = Sprite.new(@viewport2)
-      tmp.bitmap = $game_temp.bhp_fill[bar % 5]
+      tmp.bitmap = $game_temp.bhp_fill[(@current_bar-bar)%5]
       tmp.x = Graphics.width/2 - tmp.bitmap.width/2
       tmp.y = @bhpb_frame.y
       tmp.z = @current_bar-bar
@@ -227,7 +233,9 @@ class Sprite_Boss_bar
     
     if @current_rate != @boss.hp_rate
       @current_rate -= 0.0045 if @current_rate > @boss.hp_rate
+      @current_rate = 0.0 if @current_rate < 0.0
       @current_rate += 0.0045 if @current_rate < @boss.hp_rate
+      @current_rate = 1.0 if @current_rate > 1.0
     end
     
     if @confusing_bar != (@current_rate / @per_bar).ceil
@@ -239,7 +247,19 @@ class Sprite_Boss_bar
     
     @bhpb_x.update
     
-    return if BHP::HIDE_SWITCH == 0 || ($game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 0) || (!$game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 255)
+    if @current_rate <= 0.0 && BHP::HIDE_BAR_WHEN_BOSS_DIES
+      @bhpb_frame.opacity = 0
+      @bhpb_bcg.opacity = 0 
+      @bhpb_bars.each { |b|  b.opacity = 0  }
+      @bhpb_x.opacity = 0
+    elsif @current_rate > 0.0 && BHP::HIDE_BAR_WHEN_BOSS_DIES
+      @bhpb_frame.opacity = 255
+      @bhpb_bcg.opacity = 255
+      @bhpb_bars.each { |b|  b.opacity = 255  }
+      @bhpb_x.opacity = 255      
+    end
+    
+    return if (BHP::HIDE_BAR_WHEN_BOSS_DIES && @current_rate <= 0.0) || BHP::HIDE_SWITCH == 0 || ($game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 0) || (!$game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity == 255)
     if $game_switches[BHP::HIDE_SWITCH] && @bhpb_frame.opacity != 0
       @bhpb_frame.opacity = 0
       @bhpb_bcg.opacity = 0 
