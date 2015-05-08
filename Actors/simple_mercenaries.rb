@@ -117,7 +117,7 @@ class Game_Actor < Game_Battler
   # )--------------------------------------------------------------------------(
   def die
     mrts_merc_ga_die
-    $game_party.remove_mercenary(@actor_id) if @is_mercenary
+    $game_party.remove_mercenary(@actor_id) if @is_mercenary && Mercenaries::MERCENARIES_LEAVE_ON_DEATH
   end
 end
 
