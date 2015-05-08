@@ -62,7 +62,6 @@ class Game_System
   def initialize
     mrts_rssy_gs_initialize
     @save_file = DataManager.get_empty_save
-    p @save_file
   end
   
   # )--------------------------------------------------------------------------(
