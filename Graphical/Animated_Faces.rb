@@ -34,7 +34,8 @@ module ANIMATED_FACES
   # )--------------------------------------------------------------------------(
   DATA = {
   # )-- ACTOR_ID    Filename      Frame Sequence                  
-          1 => [ "8Cua3Mv.png", [0, 1, 2, 3, 2, 0, 0, 0, 0, 0 ,0, 0] ]
+          1 => [ "Actor1.png", [0, 1, 2, 3, 2, 0, 0, 0, 0, 0 ,0, 0] ],
+          2 => [ "Actor2.png", [0, 1, 2, 3, 2, 0, 0, 0, 0, 0 ,0, 0] ]
   
   }
   
@@ -87,9 +88,10 @@ class Window_Base < Window
     @elapsed_time += ms(@time_now, finish)
     mrts_face_anims_update
     if @animated_actors && @elapsed_time >= FRAME_SPEED && Time.now.to_f != @time_now
-      $game_party.members.each { |a|  
-        @actor_hash[a.id] += 1
-        @actor_hash[a.id] = 0 if @actor_hash[a.id] > DATA[a.id][1].size-1
+      @actor_hash.each { |k, v|  
+        next unless @actor_hash[k]
+        @actor_hash[k] += 1
+        @actor_hash[k] = 0 if @actor_hash[k] > DATA[k][1].size-1
       }
       refresh
       @elapsed_time = 0
