@@ -2,9 +2,10 @@
 # )--     AUTHOR:     Mr. Trivel                                             --(
 # )--     NAME:       Variable Shops                                         --(
 # )--     CREATED:    2014-12-17                                             --(
-# )--     VERSION:    1.0                                                    --(
+# )--     VERSION:    1.1                                                    --(
 # )----------------------------------------------------------------------------(
 # )--                         VERSION HISTORY                                --(
+# )--  v1.1 - Bugfix -- max buyable amout was defaulting to 99.              --(
 # )--  v1.0 - Initial release.                                               --(
 # )----------------------------------------------------------------------------(
 # )--                          DESCRIPTION                                   --(
@@ -162,7 +163,8 @@ class Scene_Variable_Shop < Scene_Shop
       math = ($game_variables[Shop_Currencies::CURRENCIES[p[0]][0]] / p[1]).floor
       available = math if available > math
     }
-    available
+    return available if max >= available
+    return max
   end
   
   # )--------------------------------------------------------------------------(
