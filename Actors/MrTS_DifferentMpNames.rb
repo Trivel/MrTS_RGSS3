@@ -92,7 +92,7 @@ class Game_System
     if MpNames::MPLIST[actorId]
       @actor_mp_name = MpNames::MPLIST[actorId][0]
     else
-      Vocab::basic(5)
+      @actor_mp_name = Vocab::basic(5)
     end
   end
   
