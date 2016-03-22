@@ -3,13 +3,14 @@
 # )--     AUTHOR:     Mr Trivel                                              --(
 # )--     NAME:       Conditional Drops                                      --(
 # )--     CREATED:    2014-10-03                                             --(
-# )--     VERSION:    1.1                                                    --(
+# )--     VERSION:    1.2                                                    --(
 #===============================================================================
 # )--                         VERSION HISTORY                                --(
 # )--  1.0 - Initial script.                                                 --(
 # )--  1.0a - Fix when starting battle with enemis without conditional drops.--(
 # )--  1.1 - Multiple conditional drops are now allowed on same enemy.       --(
 # )--        Variable increase/decrease is now a valid drop.                 --(
+# )--  1.2 - Crash fix if enemies don't have conditional drops.              --(
 #===============================================================================
 # )--                          DESCRIPTION                                   --(
 # )--  Allows enemies to drop extra items if a condition is fulfilled like   --(
@@ -102,8 +103,6 @@ class Game_Enemy < Game_Battler
   # )--------------------------------------------------------------------------(
   def initialize(index, enemy_id)
     mrts_conditional_drops_initialize(index, enemy_id) 
-    return unless enemy.conditional_drops && enemy.conditional_drops.size > 0
-    
     @conditional_drop_fulfilled = []
     @conditional_drop = []
     @conditional_type = []
@@ -111,6 +110,8 @@ class Game_Enemy < Game_Battler
     @conditional_chance = []
     @conditional_custom = []
     
+    return unless enemy.conditional_drops && enemy.conditional_drops.size > 0
+       
     i = 0
     enemy.conditional_drops.each { |drop|
       @conditional_drop_fulfilled[i] = false
